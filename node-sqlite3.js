@@ -89,8 +89,61 @@ allNotes把数据库中所有的数据行收集到一个数组里，而forAll方
             }
         }, done);
     }
+*/
+
+//Sqlite 修改数据库表名修改、增加字段
+/*
+Sqlite 仅仅支持ALTER TABLE 语句的一部分功能， 我们可以用 ALTER TABLE语句来更改一个表的名字，也可向表中增加一个字段(列)，但是我们不能删除一个已经存在的字段，或者更改一个已经存在的字段的名称、数据类型、限定符等等。
+    改变表名 - ALTER TABLE 旧表名 RENAME TO 新表名
+    增加一列 - ALTER TABLE 表名 ADD COLUMN 列名 数据类型
+    !*而修改一列无法像其他数据库一样直接以"ALTER TABLE 表名 ADD COLUMN 列名 数据类型"的方式来完成，所以需要:
+        -将表名改为临时表
+            ALTER TABLE "old_table" RENAME TO "new_table";
+        -创建新表
+            CREATE TABLE "old_table"(
+                "ID" INTEGER PRIMARY KEY AUTOINCREMENT,
+                "Name" Text
+            );
+        -导入数据
+            INSERT INTO "old_table"("ID","Name")SELECT "ID","Title" FROM "new_table";
+        -更新sqlite_sequence*[1]
+            UPDATE"sqlite_sequence"SET seq=3 WHERE name="old_table";
+                *[1]: 由于在Sqlite中使用自增长字段，引擎会自动产生一个sqlite_sequence表，用于记录每个表的自增长字段的已使用的最大值，所以要一起更新下。如果没有设置自增长，则跳过此步骤。
+        -删除临时表(可选)
+            DROP FROM new_table;
+-------------------------------------------------------------------
+常用命令行
+             $sqlite3 testDB.db          进入数据库
+                      testDB.db .dump > testDB.sql  导出完整的数据库在一个文本文件中
+            上面的命令将转换整个 testDB.db 数据库的内容到 SQLite 的语句中，并将其转储到 ASCII 文本文件 testDB.sql 中。您可以通过简单的方式从生成的 testDB.sql 恢复，如下所示：
+             $sqlite3 testDB.db < testDB.sql            
 
 
+             sqlite>.database          查看数据库
+                    .quit             退出数据库
+                    VACUUM;         释放碎片空间
+
+
+             sqlite>.tables          查看此数据库下的表
+                    .schema             查看所有表结构
+                    DROP TABLE tableName    删除表
+-------------------------------------------------------------------
+SQlite在已创建的表中删除一列
+    1.根据原表创建一张新表(不读取需要删除的列名)
+    create table teacher as select id,name from student
+
+    2.删除原表
+
+    3.将新表重名为旧表的名称
+-------------------------------------------------------------------
+//数据库对象的run函数可以执行任何的SQL语句，该函数一般不用来执行查询
+            (插入或替换)、(删除)、(修改)INSERT OR REPLACE  INTO  [node.js中使用]----> 
+
+            db.prepare
+
+
+           
+            
 
 
 
